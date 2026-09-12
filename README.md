@@ -41,7 +41,7 @@
    │   LLM возвращает JSON: {"tool": "...", "args": {...}}
    │   агент выполняет инструмент и снова думает (до 6 шагов)
    ▼
-🛠️ Инструменты (tools/universal_tools.py)
+🛠️ Инструменты агента
    • search_system_index — поиск по data/system_index.json
    • open_path           — открытие файлов и программ
    • find_contact        — контакты Outlook
@@ -56,29 +56,29 @@
 
 ## 📁 Структура проекта
 
+Код ассистента лежит в папке `alfa/`:
+
 ```
 alfa/
 ├── main.py                 # Точка входа — главный цикл ассистента
 ├── config.py               # Все настройки: пути, LLM-сервер, аудио
-├── setup.py                # Проверка окружения + установка зависимостей
 ├── build_index.py          # Сканер системы и сети → data/system_index.json
 ├── check_mic.py            # Список микрофонов (узнать индекс устройства)
-├── test_llm.py             # Проверка связи с LM Studio
-├── test_connection.py      # Быстрый тест LLM-эндпоинта
-├── universal_tools.py      # Расширенный набор инструментов (приложения, GUI, команды)
-├── requirements.txt
+├── requirements.txt        # Зависимости
 ├── audio/
 │   ├── listener.py         # STT: Vosk + sounddevice
 │   └── tts.py              # TTS: pyttsx3
 ├── brain/
 │   └── agent.py            # LLM-агент с циклом tool-calls
-├── tools/
-│   └── universal_tools.py  # Инструменты агента: индекс, файлы, Outlook
-├── models/
-│   └── vosk/               # Модель Vosk (скачивается отдельно)
-└── data/
-    └── system_index.json   # Индекс программ и документов
+└── models/
+    └── vosk/
+        └── vosk-model-small-ru-0.22/   # Русская модель Vosk (уже в репозитории)
 ```
+
+После первого запуска `build_index.py` рядом появится `data/system_index.json` — индекс программ и документов.
+
+> ℹ️ Вспомогательные утилиты из более ранних версий проекта (`setup.py`, `test_llm.py`, `test_connection.py`, `universal_tools.py`) в этот репозиторий не включены.
+
 
 ## 🛠️ Технологии
 
@@ -117,15 +117,18 @@ pip install -r requirements.txt
 
 ### 3. Модель Vosk
 
-Скачайте [`vosk-model-small-ru-0.22`](https://alphacephei.com/vosk/models) и распакуйте в:
+Русская модель **уже включена в репозиторий** — `alfa/models/vosk/vosk-model-small-ru-0.22`.
+
+Если её нужно обновить: скачайте [`vosk-model-small-ru-0.22`](https://alphacephei.com/vosk/models) и распакуйте в:
 
 ```
-models/vosk/vosk-model-small-ru-0.22
+alfa/models/vosk/vosk-model-small-ru-0.22
 ```
 
 ### 4. Индексация системы
 
 ```powershell
+cd alfa
 python build_index.py
 ```
 
@@ -134,6 +137,7 @@ python build_index.py
 ### 5. Запуск
 
 ```powershell
+cd alfa
 python check_mic.py   # узнайте индекс вашего микрофона и впишите его в audio/listener.py
 python main.py        # запуск ассистента
 ```
@@ -142,7 +146,7 @@ python main.py        # запуск ассистента
 
 ## 🔧 Настройка
 
-Основные параметры — в `config.py`:
+Основные параметры — в `alfa/config.py`:
 
 | Параметр | Описание |
 |---|---|
@@ -157,7 +161,8 @@ python main.py        # запуск ассистента
 
 - Индекс микрофона — константа `MICROPHONE_INDEX` в `audio/listener.py`
 - Подсеть для сканирования сети — переменная `local_subnet` в `build_index.py`
-- Диагностика: `python setup.py` (проверка окружения), `python test_llm.py` и `python test_connection.py` (проверка LLM-сервера)
+- Проверка микрофона: `python check_mic.py`; связь с LLM-сервером можно проверить любым OpenAI-совместимым клиентом на `LM_STUDIO_HOST`
+
 
 ## ⚠️ Ограничения
 
